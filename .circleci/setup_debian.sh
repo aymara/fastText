@@ -8,4 +8,4 @@
 #
 
 apt-get update
-apt-get install -y vim g++ make cmake wget git python-pip python-dev build-essential
+apt-get install -y vim g++ make cmake wget git python-pip python-dev build-essential libboost-all-dev
