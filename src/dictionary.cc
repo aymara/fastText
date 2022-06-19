@@ -344,6 +344,7 @@ void Dictionary::reset(std::istream& in) const {
   if (in.eof()) {
     in.clear();
     in.seekg(std::streampos(0));
+    std::cerr << "EOF reached" << std::endl;
   }
 }
 
