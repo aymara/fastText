@@ -13,6 +13,12 @@ project(fasttext)
 set (fasttext_VERSION_MAJOR 0)
 set (fasttext_VERSION_MINOR 1)
 
+option(READ_FROM_XZ "Building with libboost::iostreams (allows archive reading)" ON)
+
+if (READ_FROM_XZ)
+  find_package(Boost         1.46  REQUIRED COMPONENTS iostreams)
+endif()
+
 include_directories(fasttext)
 
 set(CMAKE_CXX_FLAGS " -pthread -std=c++11 -funroll-loops -O3 -march=native")
@@ -65,7 +71,12 @@ set_target_properties(fasttext-static PROPERTIES OUTPUT_NAME fasttext)
 set_target_properties(fasttext-static_pic PROPERTIES OUTPUT_NAME fasttext_pic
   POSITION_INDEPENDENT_CODE True)
 add_executable(fasttext-bin src/main.cc)
-target_link_libraries(fasttext-bin pthread fasttext-static)
+
+if (READ_FROM_XZ)
+  target_link_libraries(fasttext-bin pthread fasttext-static Boost::iostreams)
+else()
+  target_link_libraries(fasttext-bin pthread fasttext-static)
+endif()
 set_target_properties(fasttext-bin PROPERTIES PUBLIC_HEADER "${HEADER_FILES}" OUTPUT_NAME fasttext)
 install (TARGETS fasttext-shared
     LIBRARY DESTINATION lib)

@@ -19,6 +19,8 @@
 #include "args.h"
 #include "real.h"
 
+#include "archivereader.h"
+
 namespace fasttext {
 
 typedef int32_t id_type;
@@ -41,6 +43,7 @@ class Dictionary {
   void initTableDiscard();
   void initNgrams();
   void reset(std::istream&) const;
+  void reset(impl::ArchiveReader&) const;
   void pushHash(std::vector<int32_t>&, int32_t) const;
   void addSubwords(std::vector<int32_t>&, const std::string&, int32_t) const;
 
@@ -60,6 +63,18 @@ class Dictionary {
       std::vector<int32_t>& line,
       const std::vector<int32_t>& hashes,
       int32_t n) const;
+
+  inline bool getLine_impl(const std::string& token,
+                           int32_t& ntokens,
+                           std::uniform_real_distribution<>& uniform,
+                           std::vector<int32_t>& words,
+                           std::minstd_rand& rng) const;
+
+  inline bool getLine_impl(std::vector<int32_t> word_hashes,
+                           const std::string& token,
+                           int32_t& ntokens,
+                           std::vector<int32_t>& words,
+                           std::vector<int32_t>& labels) const;
 
  public:
   static const std::string EOS;
@@ -97,7 +112,11 @@ class Dictionary {
   std::vector<int64_t> getCounts(entry_type) const;
   int32_t getLine(std::istream&, std::vector<int32_t>&, std::vector<int32_t>&)
       const;
+  int32_t getLine(impl::ArchiveReader&, std::vector<int32_t>&, std::vector<int32_t>&)
+      const;
   int32_t getLine(std::istream&, std::vector<int32_t>&, std::minstd_rand&)
+      const;
+  int32_t getLine(impl::ArchiveReader&, std::vector<int32_t>&, std::minstd_rand&)
       const;
   void threshold(int64_t, int64_t);
   void prune(std::vector<int32_t>&);

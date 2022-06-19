@@ -20,6 +20,8 @@
 #include <thread>
 #include <vector>
 
+#include "archivereader.h"
+
 namespace fasttext {
 
 constexpr int32_t FASTTEXT_VERSION = 12; /* Version 1b */
@@ -680,6 +682,53 @@ void FastText::trainThread(int32_t threadId, const TrainCallback& callback) {
   ifs.close();
 }
 
+void FastText::trainThreadFromArchive(int32_t threadId, const TrainCallback& callback) {
+  impl::ArchiveReader in(args_->input);
+
+  Model::State state(args_->dim, output_->size(0), threadId + args_->seed);
+
+  const int64_t ntokens = dict_->ntokens();
+  int64_t localTokenCount = 0;
+  std::vector<int32_t> line, labels;
+  uint64_t callbackCounter = 0;
+
+  try {
+    while (keepTraining(ntokens)) {
+      real progress = real(tokenCount_) / (args_->epoch * ntokens);
+      if (callback && ((callbackCounter++ % 64) == 0)) {
+        double wst;
+        double lr;
+        int64_t eta;
+        std::tie<double, double, int64_t>(wst, lr, eta) =
+            progressInfo(progress);
+        callback(progress, loss_, wst, lr, eta);
+      }
+      real lr = args_->lr * (1.0 - progress);
+      if (args_->model == model_name::sup) {
+        localTokenCount += dict_->getLine(in, line, labels);
+        supervised(state, lr, line, labels);
+      } else if (args_->model == model_name::cbow) {
+        localTokenCount += dict_->getLine(in, line, state.rng);
+        cbow(state, lr, line);
+      } else if (args_->model == model_name::sg) {
+        localTokenCount += dict_->getLine(in, line, state.rng);
+        skipgram(state, lr, line);
+      }
+      if (localTokenCount > args_->lrUpdateRate) {
+        tokenCount_ += localTokenCount;
+        localTokenCount = 0;
+        if (threadId == 0 && args_->verbose > 1) {
+          loss_ = state.getLoss();
+        }
+      }
+    }
+  } catch (DenseMatrix::EncounteredNaNError&) {
+    trainException_ = std::current_exception();
+  }
+  if (threadId == 0)
+    loss_ = state.getLoss();
+}
+
 std::shared_ptr<Matrix> FastText::getInputMatrixFromFile(
     const std::string& filename) const {
   std::ifstream in(filename);
@@ -750,13 +799,10 @@ void FastText::train(const Args& args, const TrainCallback& callback) {
     // manage expectations
     throw std::invalid_argument("Cannot use stdin for training!");
   }
-  std::ifstream ifs(args_->input);
-  if (!ifs.is_open()) {
-    throw std::invalid_argument(
-        args_->input + " cannot be opened for training!");
+  {
+    impl::ArchiveReader in(args_->input);
+    dict_->readFromFile(in.stream());
   }
-  dict_->readFromFile(ifs);
-  ifs.close();
 
   if (!args_->pretrainedVectors.empty()) {
     input_ = getInputMatrixFromFile(args_->pretrainedVectors);
@@ -786,21 +832,37 @@ void FastText::startThreads(const TrainCallback& callback) {
   trainException_ = nullptr;
   std::vector<std::thread> threads;
   if (args_->thread > 1) {
+    if (utils::endsWith(args_->input, ".xz")) {
+      throw std::invalid_argument("Cannot use multiple threads with archived input file!");
+    }
     for (int32_t i = 0; i < args_->thread; i++) {
       threads.push_back(std::thread([=]() { trainThread(i, callback); }));
     }
   } else {
-    // webassembly can't instantiate `std::thread`
-    trainThread(0, callback);
+    if (utils::endsWith(args_->input, ".xz")) {
+      if (args_->verbose > 1) {
+        threads.push_back(std::thread([=]() { trainThreadFromArchive(0, callback); }));
+      } else {
+        trainThreadFromArchive(0, callback);
+      }
+    } else {
+      // webassembly can't instantiate `std::thread`
+      trainThread(0, callback);
+    }
   }
   const int64_t ntokens = dict_->ntokens();
+  uint32_t wait_time = 100;
+  uint32_t max_wait_time = (1000 * 60 * 4);
   // Same condition as trainThread
   while (keepTraining(ntokens)) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(wait_time));
     if (loss_ >= 0 && args_->verbose > 1) {
       real progress = real(tokenCount_) / (args_->epoch * ntokens);
       std::cerr << "\r";
       printInfo(progress, loss_, std::cerr);
+    }
+    if (wait_time < max_wait_time) {
+      wait_time = wait_time * 2;
     }
   }
   for (int32_t i = 0; i < threads.size(); i++) {

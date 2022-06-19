@@ -55,6 +55,7 @@ class FastText {
   void startThreads(const TrainCallback& callback = {});
   void addInputVector(Vector&, int32_t) const;
   void trainThread(int32_t, const TrainCallback& callback);
+  void trainThreadFromArchive(int32_t, const TrainCallback& callback);
   std::vector<std::pair<real, std::string>> getNN(
       const DenseMatrix& wordVectors,
       const Vector& queryVec,

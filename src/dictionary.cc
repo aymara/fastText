@@ -342,10 +342,38 @@ void Dictionary::addSubwords(
 
 void Dictionary::reset(std::istream& in) const {
   if (in.eof()) {
+    std::cerr << "EOF reached (std::istream)" << std::endl;
     in.clear();
     in.seekg(std::streampos(0));
-    std::cerr << "EOF reached" << std::endl;
   }
+}
+
+void Dictionary::reset(impl::ArchiveReader& in) const {
+  if (in.eof()) {
+    std::cerr << "EOF reached (impl::ArchiveReader)" << std::endl;
+    in.reset();
+  }
+}
+
+bool Dictionary::getLine_impl(const std::string& token,
+                              int32_t& ntokens,
+                              std::uniform_real_distribution<>& uniform,
+                              std::vector<int32_t>& words,
+                              std::minstd_rand& rng) const {
+  int32_t h = find(token);
+  int32_t wid = word2int_[h];
+  if (wid < 0) {
+    return true;
+  }
+
+  ntokens++;
+  if (getType(wid) == entry_type::word && !discard(wid, uniform(rng))) {
+    words.push_back(wid);
+  }
+  if (ntokens > MAX_LINE_SIZE || token == EOS) {
+    return false;
+  }
+  return true;
 }
 
 int32_t Dictionary::getLine(
@@ -359,21 +387,52 @@ int32_t Dictionary::getLine(
   reset(in);
   words.clear();
   while (readWord(in, token)) {
-    int32_t h = find(token);
-    int32_t wid = word2int_[h];
-    if (wid < 0) {
-      continue;
-    }
-
-    ntokens++;
-    if (getType(wid) == entry_type::word && !discard(wid, uniform(rng))) {
-      words.push_back(wid);
-    }
-    if (ntokens > MAX_LINE_SIZE || token == EOS) {
+    if (!getLine_impl(token, ntokens, uniform, words, rng)) {
       break;
     }
   }
   return ntokens;
+}
+
+int32_t Dictionary::getLine(
+    impl::ArchiveReader& in,
+    std::vector<int32_t>& words,
+    std::minstd_rand& rng) const {
+  std::uniform_real_distribution<> uniform(0, 1);
+  std::string token;
+  int32_t ntokens = 0;
+
+  reset(in);
+  words.clear();
+  while (readWord(in.stream(), token)) {
+    if (!getLine_impl(token, ntokens, uniform, words, rng)) {
+      break;
+    }
+  }
+  return ntokens;
+}
+
+bool Dictionary::getLine_impl(std::vector<int32_t> word_hashes,
+                              const std::string& token,
+                              int32_t& ntokens,
+                              std::vector<int32_t>& words,
+                              std::vector<int32_t>& labels) const {
+  uint32_t h = hash(token);
+  int32_t wid = getId(token, h);
+  entry_type type = wid < 0 ? getType(token) : getType(wid);
+
+  ntokens++;
+  if (type == entry_type::word) {
+    addSubwords(words, token, wid);
+    word_hashes.push_back(h);
+  } else if (type == entry_type::label && wid >= 0) {
+    labels.push_back(wid - nwords_);
+  }
+  if (token == EOS) {
+    return false;
+  }
+
+  return true;
 }
 
 int32_t Dictionary::getLine(
@@ -388,18 +447,27 @@ int32_t Dictionary::getLine(
   words.clear();
   labels.clear();
   while (readWord(in, token)) {
-    uint32_t h = hash(token);
-    int32_t wid = getId(token, h);
-    entry_type type = wid < 0 ? getType(token) : getType(wid);
-
-    ntokens++;
-    if (type == entry_type::word) {
-      addSubwords(words, token, wid);
-      word_hashes.push_back(h);
-    } else if (type == entry_type::label && wid >= 0) {
-      labels.push_back(wid - nwords_);
+    if (!getLine_impl(word_hashes, token, ntokens, words, labels)) {
+      break;
     }
-    if (token == EOS) {
+  }
+  addWordNgrams(words, word_hashes, args_->wordNgrams);
+  return ntokens;
+}
+
+int32_t Dictionary::getLine(
+    impl::ArchiveReader& in,
+    std::vector<int32_t>& words,
+    std::vector<int32_t>& labels) const {
+  std::vector<int32_t> word_hashes;
+  std::string token;
+  int32_t ntokens = 0;
+
+  reset(in);
+  words.clear();
+  labels.clear();
+  while (readWord(in.stream(), token)) {
+    if (!getLine_impl(word_hashes, token, ntokens, words, labels)) {
       break;
     }
   }
