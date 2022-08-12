@@ -748,7 +748,7 @@ void FastText::trainThreadFromArchive(int32_t threadId, const TrainCallback& cal
 void FastText::saveInterm(real progress) {
   std::ostringstream ss;
   ss.precision(2);
-  ss << args_->output << "_" << std::fixed << progress << ".bin";
+  ss << args_->output << "-" << std::fixed << progress << ".bin";
   std::cerr << "Saving model at " << progress << std::endl;
   saveModel(ss.str());
 }
