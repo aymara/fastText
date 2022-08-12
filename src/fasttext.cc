@@ -644,6 +644,11 @@ void FastText::trainThread(int32_t threadId, const TrainCallback& callback) {
   int64_t localTokenCount = 0;
   std::vector<int32_t> line, labels;
   uint64_t callbackCounter = 0;
+
+  bool saveIntermState = (0 == threadId) && (args_->intermSaveStep > 0);
+  real saveStep = real(args_->intermSaveStep) / 100;
+  real saveAt = saveStep;
+
   try {
     while (keepTraining(ntokens)) {
       real progress = real(tokenCount_) / (args_->epoch * ntokens);
@@ -654,6 +659,10 @@ void FastText::trainThread(int32_t threadId, const TrainCallback& callback) {
         std::tie<double, double, int64_t>(wst, lr, eta) =
             progressInfo(progress);
         callback(progress, loss_, wst, lr, eta);
+      }
+      if (saveIntermState && progress > saveAt) {
+        saveInterm(progress);
+        saveAt += saveStep;
       }
       real lr = args_->lr * (1.0 - progress);
       if (args_->model == model_name::sup) {
@@ -691,6 +700,9 @@ void FastText::trainThreadFromArchive(int32_t threadId, const TrainCallback& cal
   int64_t localTokenCount = 0;
   std::vector<int32_t> line, labels;
   uint64_t callbackCounter = 0;
+  bool saveIntermState = (0 == threadId) && (args_->intermSaveStep > 0);
+  real saveStep = real(args_->intermSaveStep) / 100;
+  real saveAt = saveStep;
 
   try {
     while (keepTraining(ntokens)) {
@@ -702,6 +714,10 @@ void FastText::trainThreadFromArchive(int32_t threadId, const TrainCallback& cal
         std::tie<double, double, int64_t>(wst, lr, eta) =
             progressInfo(progress);
         callback(progress, loss_, wst, lr, eta);
+      }
+      if (saveIntermState && progress > saveAt) {
+        saveInterm(progress);
+        saveAt += saveStep;
       }
       real lr = args_->lr * (1.0 - progress);
       if (args_->model == model_name::sup) {
@@ -727,6 +743,14 @@ void FastText::trainThreadFromArchive(int32_t threadId, const TrainCallback& cal
   }
   if (threadId == 0)
     loss_ = state.getLoss();
+}
+
+void FastText::saveInterm(real progress) {
+  std::ostringstream ss;
+  ss.precision(2);
+  ss << args_->output << "_" << std::fixed << progress << ".bin";
+  std::cerr << "Saving model at " << progress << std::endl;
+  saveModel(ss.str());
 }
 
 std::shared_ptr<Matrix> FastText::getInputMatrixFromFile(
@@ -834,6 +858,9 @@ void FastText::startThreads(const TrainCallback& callback) {
   if (args_->thread > 1) {
     if (utils::endsWith(args_->input, ".xz")) {
       throw std::invalid_argument("Cannot use multiple threads with archived input file!");
+    }
+    if (args_->intermSaveStep > 0) {
+      throw std::invalid_argument("Intermediate saving isn't possible with multiple threads.");
     }
     for (int32_t i = 0; i < args_->thread; i++) {
       threads.push_back(std::thread([=]() { trainThread(i, callback); }));

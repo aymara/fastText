@@ -72,6 +72,8 @@ class Args {
   int autotuneDuration;
   std::string autotuneModelSize;
 
+  int intermSaveStep;
+
   void parseArgs(const std::vector<std::string>& args);
   void printHelp();
   void printBasicHelp();
