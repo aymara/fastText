@@ -747,10 +747,14 @@ void FastText::trainThreadFromArchive(int32_t threadId, const TrainCallback& cal
 
 void FastText::saveInterm(real progress) {
   std::ostringstream ss;
-  ss.precision(2);
-  ss << args_->output << "-" << std::fixed << progress << ".bin";
-  std::cerr << "Saving model at " << progress << std::endl;
+  auto prev_precision = ss.precision(2);
+  ss << args_->output
+     << "-" << std::fixed << progress
+     << "-loss" << std::setprecision(4) << loss_
+     << ".bin";
+  std::cerr << std::endl << "Saving model at " << progress << std::endl;
   saveModel(ss.str());
+  ss.precision(prev_precision);
 }
 
 std::shared_ptr<Matrix> FastText::getInputMatrixFromFile(
