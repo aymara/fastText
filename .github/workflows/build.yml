@@ -42,7 +42,7 @@ jobs:
           swap-storage: true
 
       - name: "Build image"
-        run: docker -t aymara/fasttext_manylinux_2_28:latest .
+        run: docker build -t aymara/fasttext_manylinux_2_28:latest .
 
       - name: "Push docker image"
         run: docker push aymara/fasttext_manylinux_2_28:latest
