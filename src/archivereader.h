@@ -9,6 +9,7 @@
 
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/copy.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filter/lzma.hpp>
 
 namespace fasttext {
@@ -49,6 +50,9 @@ public:
     }
     if (utils::endsWith(filename_, ".xz")) {
       impl_.push(boost::iostreams::lzma_decompressor());
+    }
+    else if (utils::endsWith(filename_, ".gz")) {
+      impl_.push(boost::iostreams::gzip_decompressor());
     }
     impl_.push(src_);
   }

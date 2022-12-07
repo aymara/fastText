@@ -860,7 +860,7 @@ void FastText::startThreads(const TrainCallback& callback) {
   trainException_ = nullptr;
   std::vector<std::thread> threads;
   if (args_->thread > 1) {
-    if (utils::endsWith(args_->input, ".xz")) {
+    if (utils::endsWith(args_->input, ".xz") || utils::endsWith(args_->input, ".gz")) {
       throw std::invalid_argument("Cannot use multiple threads with archived input file!");
     }
     if (args_->intermSaveStep > 0) {
@@ -870,7 +870,7 @@ void FastText::startThreads(const TrainCallback& callback) {
       threads.push_back(std::thread([=]() { trainThread(i, callback); }));
     }
   } else {
-    if (utils::endsWith(args_->input, ".xz")) {
+    if (utils::endsWith(args_->input, ".xz") || utils::endsWith(args_->input, ".gz")) {
       if (args_->verbose > 1) {
         threads.push_back(std::thread([=]() { trainThreadFromArchive(0, callback); }));
       } else {
