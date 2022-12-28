@@ -327,8 +327,7 @@ std::vector<int32_t> FastText::selectEmbeddings(int32_t cutoff) const {
 
 void FastText::quantize(const Args& qargs, const TrainCallback& callback) {
   if (args_->model != model_name::sup) {
-    throw std::invalid_argument(
-        "For now we only support quantization of supervised models");
+    std::cerr << "For now we only support quantization of supervised models. I have no idea why. Let's try anyway." << std::endl;
   }
   args_->input = qargs.input;
   args_->qout = qargs.qout;
