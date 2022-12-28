@@ -1,6 +1,7 @@
 on:
   push:
     branches:
+    - master
     - read_from_xz
 
 env:
