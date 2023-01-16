@@ -580,8 +580,8 @@ void Dictionary::prune(std::vector<int32_t>& idx) {
 
   std::fill(word2int_.begin(), word2int_.end(), -1);
 
-  int32_t j = 0;
-  for (int32_t i = 0; i < words_.size(); i++) {
+  size_t j = 0;
+  for (size_t i = 0; i < words_.size(); i++) {
     if (getType(i) == entry_type::label ||
         (j < words.size() && words[j] == i)) {
       words_[j] = words_[i];

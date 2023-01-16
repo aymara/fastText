@@ -113,7 +113,7 @@ int32_t FastText::getLabelId(const std::string& label) const {
 void FastText::getWordVector(Vector& vec, const std::string& word) const {
   const std::vector<int32_t>& ngrams = dict_->getSubwords(word);
   vec.zero();
-  for (int i = 0; i < ngrams.size(); i++) {
+  for (size_t i = 0; i < ngrams.size(); i++) {
     addInputVector(vec, ngrams[i]);
   }
   if (ngrams.size() > 0) {
@@ -315,7 +315,7 @@ std::vector<int32_t> FastText::selectEmbeddings(int32_t cutoff) const {
   std::vector<int32_t> idx(input->size(0), 0);
   std::iota(idx.begin(), idx.end(), 0);
   auto eosid = dict_->getId(Dictionary::EOS);
-  std::sort(idx.begin(), idx.end(), [&norms, eosid](size_t i1, size_t i2) {
+  std::sort(idx.begin(), idx.end(), [&norms, eosid](int32_t i1, int32_t i2) {
     if (i1 == eosid && i2 == eosid) { // satisfy strict weak ordering
       return false;
     }
@@ -412,10 +412,10 @@ void FastText::skipgram(
     real lr,
     const std::vector<int32_t>& line) {
   std::uniform_int_distribution<> uniform(1, args_->ws);
-  for (int32_t w = 0; w < line.size(); w++) {
-    int32_t boundary = uniform(state.rng);
+  for (size_t w = 0; w < line.size(); w++) {
+    auto boundary = uniform(state.rng);
     const std::vector<int32_t>& ngrams = dict_->getSubwords(line[w]);
-    for (int32_t c = -boundary; c <= boundary; c++) {
+    for (auto c = -boundary; c <= boundary; c++) {
       if (c != 0 && w + c >= 0 && w + c < line.size()) {
         model_->update(ngrams, line, w + c, lr, state);
       }
@@ -496,7 +496,7 @@ void FastText::getSentenceVector(std::istream& in, fasttext::Vector& svec) {
   if (args_->model == model_name::sup) {
     std::vector<int32_t> line, labels;
     dict_->getLine(in, line, labels);
-    for (int32_t i = 0; i < line.size(); i++) {
+    for (size_t i = 0; i < line.size(); i++) {
       addInputVector(svec, line[i]);
     }
     if (!line.empty()) {
@@ -531,7 +531,7 @@ std::vector<std::pair<std::string, Vector>> FastText::getNgramVectors(
   std::vector<std::string> substrings;
   dict_->getSubwords(word, ngrams, substrings);
   assert(ngrams.size() <= substrings.size());
-  for (int32_t i = 0; i < ngrams.size(); i++) {
+  for (size_t i = 0; i < ngrams.size(); i++) {
     Vector vec(args_->dim);
     if (ngrams[i] >= 0) {
       vec.addRow(*input_, ngrams[i]);
@@ -772,12 +772,12 @@ std::shared_ptr<Matrix> FastText::getInputMatrixFromFile(
         ") does not match dimension (" + std::to_string(args_->dim) + ")!");
   }
   mat = std::make_shared<DenseMatrix>(n, dim);
-  for (size_t i = 0; i < n; i++) {
+  for (int64_t i = 0; i < n; i++) {
     std::string word;
     in >> word;
     words.push_back(word);
     dict_->add(word);
-    for (size_t j = 0; j < dim; j++) {
+    for (int64_t j = 0; j < dim; j++) {
       in >> mat->at(i, j);
     }
   }
@@ -789,12 +789,12 @@ std::shared_ptr<Matrix> FastText::getInputMatrixFromFile(
       dict_->nwords() + args_->bucket, args_->dim);
   input->uniform(1.0 / args_->dim, args_->thread, args_->seed);
 
-  for (size_t i = 0; i < n; i++) {
+  for (int64_t i = 0; i < n; i++) {
     int32_t idx = dict_->getId(words[i]);
     if (idx < 0 || idx >= dict_->nwords()) {
       continue;
     }
-    for (size_t j = 0; j < dim; j++) {
+    for (int64_t j = 0; j < dim; j++) {
       input->at(idx, j) = mat->at(i, j);
     }
   }
@@ -895,7 +895,7 @@ void FastText::startThreads(const TrainCallback& callback) {
       wait_time = wait_time * 2;
     }
   }
-  for (int32_t i = 0; i < threads.size(); i++) {
+  for (size_t i = 0; i < threads.size(); i++) {
     threads[i].join();
   }
   if (trainException_) {
