@@ -21,7 +21,7 @@ endif()
 
 include_directories(fasttext)
 
-set(CMAKE_CXX_FLAGS " -pthread -std=c++11 -funroll-loops -O3 -march=x86-64 -tune=x86-64")
+set(CMAKE_CXX_FLAGS " -pthread -std=c++11 -funroll-loops -O3 -march=x86-64")
 
 set(HEADER_FILES
     src/args.h
