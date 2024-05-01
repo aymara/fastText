@@ -761,7 +761,7 @@ std::shared_ptr<Matrix> FastText::getInputMatrixFromFile(
   std::ifstream in(filename);
   std::vector<std::string> words;
   std::shared_ptr<DenseMatrix> mat; // temp. matrix for pretrained vectors
-  int64_t n, dim;
+  uint64_t n, dim;
   if (!in.is_open()) {
     throw std::invalid_argument(filename + " cannot be opened for loading!");
   }

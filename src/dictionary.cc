@@ -19,10 +19,6 @@
 
 namespace fasttext {
 
-const std::string Dictionary::EOS = "</s>";
-const std::string Dictionary::BOW = "<";
-const std::string Dictionary::EOW = ">";
-
 Dictionary::Dictionary(std::shared_ptr<Args> args)
     : args_(args),
       word2int_(MAX_VOCAB_SIZE, -1),
@@ -313,9 +309,9 @@ void Dictionary::addWordNgrams(
     std::vector<int32_t>& line,
     const std::vector<int32_t>& hashes,
     int32_t n) const {
-  for (int32_t i = 0; i < hashes.size(); i++) {
+  for (size_t i = 0; i < hashes.size(); i++) {
     uint64_t h = hashes[i];
-    for (int32_t j = i + 1; j < hashes.size() && j < i + n; j++) {
+    for (size_t j = i + 1; j < hashes.size() && j < i + n; j++) {
       h = h * 116049371 + hashes[j];
       pushHash(line, h % args_->bucket);
     }

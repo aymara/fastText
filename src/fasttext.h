@@ -31,6 +31,7 @@
 
 namespace fasttext {
 
+
 class FastText {
  public:
   using TrainCallback =
