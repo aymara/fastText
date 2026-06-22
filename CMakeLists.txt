@@ -16,7 +16,7 @@ set (fasttext_VERSION_MINOR 1)
 option(READ_FROM_XZ "Building with libboost::iostreams (allows archive reading)" ON)
 
 if (READ_FROM_XZ)
-  find_package(Boost         1.46  REQUIRED COMPONENTS iostreams)
+  find_package(Boost 1.46 REQUIRED CONFIG COMPONENTS iostreams)
 endif()
 
 include_directories(fasttext)

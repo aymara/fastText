@@ -13,9 +13,9 @@ FASTTEXTDIR=../../
 # compile
 
 pushd $FASTTEXTDIR
-make opt
+mkdir -p build && cd build && cmake .. && make
 popd
-ft=${FASTTEXTDIR}/fasttext
+ft=${FASTTEXTDIR}/build/fasttext
 
 g++ -std=c++0x eval.cpp -o eval
 

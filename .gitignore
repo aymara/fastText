@@ -1,3 +1,5 @@
+build/
+*.log
 *.sif
 *.kdev4
 .*.swp

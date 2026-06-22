@@ -15,7 +15,7 @@ These include :
 
 * (gcc-4.6.3 or newer) or (clang-3.3 or newer)
 
-Compilation is carried out using a Makefile, so you will need to have a working **make**.
+Compilation is carried out using **cmake** (version 3.22 or newer).
 For the word-similarity evaluation script you will need:
 
 * python 2.6 or newer
@@ -26,13 +26,13 @@ For the word-similarity evaluation script you will need:
 In order to build `fastText`, use the following:
 
 ```bash
-$ git clone https://github.com/facebookresearch/fastText.git
+$ git clone https://github.com/aymara/fastText.git
 $ cd fastText
-$ make
+$ mkdir build && cd build && cmake ..
+$ make && make install
 ```
 
-This will produce object files for all the classes as well as the main binary `fasttext`.
-If you do not plan on using the default system-wide compiler, update the two macros defined at the beginning of the Makefile (CC and INCLUDES).
+This will create the `fasttext` binary and all relevant libraries (shared, static, PIC).
 
 
 ## Building `fasttext` python module

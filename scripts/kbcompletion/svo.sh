@@ -12,9 +12,9 @@ FASTTEXTDIR=../../
 
 # compile
 pushd $FASTTEXTDIR
-make opt
+mkdir -p build && cd build && cmake .. && make
 popd
-ft=${FASTTEXTDIR}/fasttext
+ft=${FASTTEXTDIR}/build/fasttext
 
 ## Train model and test it on validation:
 

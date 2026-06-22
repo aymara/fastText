@@ -1,4 +1,4 @@
-fastText |CircleCI|
+fastText |Build|
 ===================
 
 `fastText <https://fasttext.cc/>`__ is a library for efficient learning
@@ -402,5 +402,5 @@ Join the fastText community
    group <https://groups.google.com/forum/#!forum/fasttext-library>`__
 -  `GitHub <https://github.com/facebookresearch/fastText>`__
 
-.. |CircleCI| image:: https://circleci.com/gh/facebookresearch/fastText/tree/master.svg?style=svg
-   :target: https://circleci.com/gh/facebookresearch/fastText/tree/master
+.. |Build| image:: https://github.com/aymara/fastText/actions/workflows/build.yml/badge.svg
+   :target: https://github.com/aymara/fastText/actions/workflows/build.yml

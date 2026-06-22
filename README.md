@@ -1,7 +1,7 @@
 # fastText
 [fastText](https://fasttext.cc/) is a library for efficient learning of word representations and sentence classification.
 
-[![CircleCI](https://circleci.com/gh/aymara/fastText/tree/master.svg?style=svg)](https://circleci.com/gh/aymara/fastText/tree/master)
+[![Build](https://github.com/aymara/fastText/actions/workflows/build.yml/badge.svg)](https://github.com/aymara/fastText/actions/workflows/build.yml)
 
 ## Table of contents
 
@@ -13,7 +13,6 @@
 * [Requirements](#requirements)
 * [Building fastText](#building-fasttext)
    * [Getting the source code](#getting-the-source-code)
-   * [Building fastText using make (preferred)](#building-fasttext-using-make-preferred)
    * [Building fastText using cmake](#building-fasttext-using-cmake)
    * [Building fastText for Python](#building-fasttext-for-python)
 * [Example use cases](#example-use-cases)
@@ -48,7 +47,7 @@ We also provide a [cheatsheet](https://fasttext.cc/docs/en/cheatsheet.html#conte
 
 ## Requirements
 
-We are continuously building and testing our library, CLI and Python bindings under various docker images using [circleci](https://circleci.com/).
+We are continuously building and testing our library, CLI and Python bindings under a manylinux docker image using [GitHub Actions](https://github.com/aymara/fastText/actions).
 
 Generally, **fastText** builds on modern Mac OS and Linux distributions.
 Since it uses some C++11 features, it requires a compiler with good C++11 support.
@@ -56,8 +55,7 @@ These include :
 
 * (g++-4.7.2 or newer) or (clang-3.3 or newer)
 
-Compilation is carried out using a Makefile, so you will need to have a working **make**.
-If you want to use **cmake** you need at least version 2.8.9.
+Compilation is carried out using **cmake** (version 3.22 or newer).
 
 One of the oldest distributions we successfully built and tested the CLI under is [Debian jessie](https://www.debian.org/releases/jessie/).
 
@@ -86,24 +84,10 @@ You can find our [latest stable release](https://github.com/facebookresearch/fas
 
 There is also the master branch that contains all of our most recent work, but comes along with all the usual caveats of an unstable branch. You might want to use this if you are a developer or power-user.
 
-### Building fastText using make (preferred)
-
-```
-$ wget https://github.com/facebookresearch/fastText/archive/v0.9.2.zip
-$ unzip v0.9.2.zip
-$ cd fastText-0.9.2
-$ make
-```
-
-This will produce object files for all the classes as well as the main binary `fasttext`.
-If you do not plan on using the default system-wide compiler, update the two macros defined at the beginning of the Makefile (CC and INCLUDES).
-
 ### Building fastText using cmake
 
-For now this is not part of a release, so you will need to clone the master branch.
-
 ```
-$ git clone https://github.com/facebookresearch/fastText.git
+$ git clone https://github.com/aymara/fastText.git
 $ cd fastText
 $ mkdir build && cd build && cmake ..
 $ make && make install

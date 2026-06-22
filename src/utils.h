@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include "real.h"
 
 #include <algorithm>
