@@ -1,4 +1,4 @@
-# fastText [![CircleCI](https://circleci.com/gh/facebookresearch/fastText/tree/master.svg?style=svg)](https://circleci.com/gh/facebookresearch/fastText/tree/master)
+# fastText [![Build](https://github.com/aymara/fastText/actions/workflows/build.yml/badge.svg)](https://github.com/aymara/fastText/actions/workflows/build.yml)
 
 [fastText](https://fasttext.cc/) is a library for efficient learning of word representations and sentence classification.
 
